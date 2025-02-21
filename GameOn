@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ping Pong Game</title>
+    <style>
+        body { text-align: center; background: #222; color: white; }
+        canvas { background: black; display: block; margin: auto; }
+    </style>
+</head>
+<body>
+    <h1>Ping Pong Game</h1>
+    <h2>Player: <span id="playerScore">0</span> - AI: <span id="aiScore">0</span></h2>
+    <h2 id="gameOverMessage" style="display: none;">Game Over! Password: 123LeeCV</h2>
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        const paddleWidth = 10, paddleHeight = 80;
+        let playerY = canvas.height / 2 - paddleHeight / 2;
+        let aiY = canvas.height / 2 - paddleHeight / 2;
+        let ballX = canvas.width / 2, ballY = canvas.height / 2;
+        let ballSpeedX = 5, ballSpeedY = 5;
+        let playerScore = 0, aiScore = 0;
+        let gameOver = false;
+
+        document.addEventListener("mousemove", (e) => {
+            let rect = canvas.getBoundingClientRect();
+            playerY = e.clientY - rect.top - paddleHeight / 2;
+        });
+
+        function drawRect(x, y, width, height, color) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, width, height);
+        }
+
+        function drawCircle(x, y, radius, color) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function update() {
+            if (gameOver) return;
+
+            ballX += ballSpeedX;
+            ballY += ballSpeedY;
+
+            if (ballY <= 0 || ballY >= canvas.height) ballSpeedY *= -1;
+
+            if (ballX <= 20 && ballY >= playerY && ballY <= playerY + paddleHeight) {
+                ballSpeedX *= -1;
+                increaseBallSpeed();
+            }
+            if (ballX >= canvas.width - 20 && ballY >= aiY && ballY <= aiY + paddleHeight) {
+                ballSpeedX *= -1;
+                increaseBallSpeed();
+            }
+
+            if (ballX < 0) {
+                aiScore++;
+                resetBall();
+            }
+            if (ballX > canvas.width) {
+                playerScore++;
+                if (playerScore >= 3) {
+                    gameOver = true;
+                    document.getElementById("gameOverMessage").style.display = "block";
+                } else {
+                    resetBall();
+                }
+            }
+
+            aiY += (ballY - (aiY + paddleHeight / 2)) * 0.15;
+
+            document.getElementById("playerScore").innerText = playerScore;
+            document.getElementById("aiScore").innerText = aiScore;
+        }
+
+        function resetBall() {
+            ballX = canvas.width / 2;
+            ballY = canvas.height / 2;
+            ballSpeedX = (Math.random() > 0.5 ? 1 : -1) * 5;
+            ballSpeedY = (Math.random() > 0.5 ? 1 : -1) * 5;
+        }
+
+        function increaseBallSpeed() {
+            ballSpeedX *= 1.05;
+            ballSpeedY *= 1.05;
+        }
+
+        function draw() {
+            drawRect(0, 0, canvas.width, canvas.height, "black");
+            drawRect(10, playerY, paddleWidth, paddleHeight, "white");
+            drawRect(canvas.width - 20, aiY, paddleWidth, paddleHeight, "white");
+            drawCircle(ballX, ballY, 8, "#FFFF00");
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            if (!gameOver) requestAnimationFrame(gameLoop);
+        }
+
+        gameLoop();
+    </script>
+</body>
+</html>
+
+
